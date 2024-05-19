@@ -13,7 +13,6 @@ const Settings: React.FC = () => {
   const [selectedServerAIId, setSelectedServerAIId] = useState<string>(serverAIs[0]?.id || '');
   const [selectedModel, setSelectedModel] = useState<string>('GPT 3.5 Turbo');
   const [memoryEnabled, setMemoryEnabled] = useState<boolean>(false);
-  const [name, setName] = useState<string>('');
   const [prompt, setPrompt] = useState<string>('');
   const [knowledge, setKnowledge] = useState<string>('');
   const [comments, setComments] = useState<string>('');
@@ -45,7 +44,6 @@ const Settings: React.FC = () => {
     const selectedAI = serverAIs.find((ai) => ai.id === event.target.value);
     setSelectedServerAIId(event.target.value);
     if (selectedAI) {
-      setName(selectedAI.name);
       setPrompt(selectedAI.prompt);
       setKnowledge(selectedAI.knowledge);
       setComments(selectedAI.comments);
@@ -69,7 +67,6 @@ const Settings: React.FC = () => {
       comments,
     };
     addServerAI(newAI);
-    setName('');
     setPrompt('');
     setNewPrompt('');
     setKnowledge('');
