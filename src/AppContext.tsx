@@ -1,4 +1,4 @@
-import React, { createContext, useState, ReactNode, FC } from 'react';
+import { createContext, useState, ReactNode, FC } from 'react';
 
 interface IMessage {
   author: 'user' | 'bot';
@@ -68,7 +68,16 @@ const initialServerAIs: ServerAIModel[] = [
   },
 ];
 
-export const AppContext = createContext<AppContextType | undefined>(undefined);
+export const AppContext = createContext<AppContextType>({
+  chatHistories: initialChatHistories,
+  serverAIs: initialServerAIs,
+  addServerAI: () => {},
+  deleteServerAI: () => {},
+  addMessageToChat: () => {},
+  createNewChat: () => '',
+  toggleSidebar: () => {},
+  isSidebarOpen: true,
+});
 
 export const AppProvider: FC<{ children: ReactNode }> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
