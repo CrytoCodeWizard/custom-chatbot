@@ -1,39 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { AppContext } from '../AppContext';
+
 interface IMessage {
   author: 'user' | 'bot';
   text: string;
-  timestamp: string;  // Adding timestamp for each message
+  timestamp: string;
 }
 
-interface IChatHistory {
-  [key: string]: IMessage[];
-}
-
-const chatHistories: IChatHistory = {
-  '1': [
-    { author: 'bot', text: 'Hello there! How can I assist you today?', timestamp: '10:00 AM' },
-    { author: 'user', text: 'Hi, I need help with my project.', timestamp: '10:02 AM' },
-  ],
-  '2': [
-    { author: 'bot', text: 'Nice to meet you! I am here to assist you.', timestamp: '11:00 AM' },
-    { author: 'user', text: 'Nice to meet you too!', timestamp: '11:05 AM' },
-  ],
-  '3': [
-    { author: 'bot', text: 'How can I help you today?', timestamp: '12:00 PM' },
-    { author: 'user', text: 'I need support with my account.', timestamp: '12:03 PM' },
-  ],
-};
 const Chat: React.FC = () => {
-  const { chat_id } = useParams<{chat_id: string}>();
+  const { chat_id } = useParams<{ chat_id: string }>();
+  const { chatHistories, addMessageToChat } = useContext(AppContext);
   const [prompt, setPrompt] = useState('');
   const [messages, setMessages] = useState<IMessage[]>([]);
 
   useEffect(() => {
-    if(chat_id && chatHistories[chat_id]) {
+    if (chat_id && chatHistories[chat_id]) {
       setMessages(chatHistories[chat_id]);
     }
-  }, [chat_id]);
+  }, [chat_id, chatHistories]);
 
   const handleSendPrompt = () => {
     const currentTime = new Date().toLocaleTimeString();
@@ -44,18 +29,17 @@ const Chat: React.FC = () => {
       timestamp: currentTime,
     };
 
-    setMessages(messages => [...messages, userMessage]);
-
-    // Simulating a response from the bot
     const botResponse: IMessage = {
       author: 'bot',
       text: `Chatgpt: ${prompt}`,
       timestamp: currentTime,
     };
 
+    addMessageToChat(chat_id || 'default', userMessage);
+
     setTimeout(() => {
-      setMessages(messages => [...messages, botResponse]);
-    }, 1000); // simulate a slight delay for bot response
+      addMessageToChat(chat_id || 'default', botResponse);
+    }, 1000);
 
     setPrompt('');
   };
@@ -79,6 +63,7 @@ const Chat: React.FC = () => {
           placeholder="Type your message here..."
           value={prompt}
           onChange={e => setPrompt(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSendPrompt()}
         />
         <button
           onClick={handleSendPrompt}

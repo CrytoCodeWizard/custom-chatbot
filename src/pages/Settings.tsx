@@ -1,47 +1,17 @@
-import React, { useState } from 'react';
-
-interface ServerAIModel {
-  id: string;
-  name: string;
-  prompt: string;
-  knowledge: string;
-  comments: string;
-}
-
-interface PromptModel {
-  id: string;
-  name: string;
-}
-
-const initialServerAIs: ServerAIModel[] = [
-  {
-    id: '1',
-    name: 'ServerAIModel01',
-    prompt: 'this is test prompt 1',
-    knowledge: 'Base Knowledge',
-    comments: 'Initial comments'
-  },
-  {
-    id: '2',
-    name: 'ServerAIModel02',
-    prompt: 'this is test prompt 2',
-    knowledge: 'Extended Knowledge',
-    comments: 'Secondary comments'
-  },
-];
-
-const initialPrompts: PromptModel[] = [
-  { id: '1', name: 'Sample Prompt 1' },
-  { id: '2', name: 'Sample Prompt 2' },
-];
+import React, { useContext, useEffect, useState } from 'react';
+import { AppContext } from '../AppContext';
 
 const models = ["GPT 3.5 Turbo", "GPT 4.0"];
 
 const Settings: React.FC = () => {
-  const [serverAIs, setServerAIs] = useState<ServerAIModel[]>(initialServerAIs);
-  const [promptModels, setPromptModels] = useState<PromptModel[]>(initialPrompts);
-  const [selectedServerAIId, setSelectedServerAIId] = useState<string>(serverAIs[0].id);
-  const [selectedModel, setSelectedModel] = useState<string>(models[0]);
+  const {
+    serverAIs,
+    addServerAI,
+    deleteServerAI,
+  } = useContext(AppContext);
+
+  const [selectedServerAIId, setSelectedServerAIId] = useState<string>(serverAIs[0]?.id || '');
+  const [selectedModel, setSelectedModel] = useState<string>('GPT 3.5 Turbo');
   const [memoryEnabled, setMemoryEnabled] = useState<boolean>(false);
   const [name, setName] = useState<string>('');
   const [prompt, setPrompt] = useState<string>('');
@@ -51,19 +21,19 @@ const Settings: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<string>('');
 
+  useEffect(() => {
+    console.log("serverAI : ", serverAIs);
+  }, []);
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files ? event.target.files[0] : null;
     setFile(file);
-    // Optionally read the file or process it here if required
   };
-  
+
   const uploadFile = async () => {
     if (file) {
       setUploadStatus('Uploading...');
       try {
-        // Simulate a file upload delay
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        // Implement actual upload logic here
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         setUploadStatus('File uploaded successfully.');
       } catch (error) {
         setUploadStatus('Failed to upload file.');
@@ -72,7 +42,7 @@ const Settings: React.FC = () => {
   };
 
   const handleServerAIChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedAI = serverAIs.find(ai => ai.id === event.target.value);
+    const selectedAI = serverAIs.find((ai) => ai.id === event.target.value);
     setSelectedServerAIId(event.target.value);
     if (selectedAI) {
       setName(selectedAI.name);
@@ -92,35 +62,20 @@ const Settings: React.FC = () => {
 
   const createServerAI = () => {
     const newAI = {
-        id: Date.now().toString(),
-        name,
-        prompt,
-        knowledge,
-        comments
+      id: Date.now().toString(),
+      name: newPrompt,
+      prompt,
+      knowledge,
+      comments,
     };
-
-    setServerAIs([...serverAIs, newAI]);
+    addServerAI(newAI);
     setName('');
     setPrompt('');
+    setNewPrompt('');
     setKnowledge('');
     setComments('');
-    // Reset file after creating the server AI entry if required
     setFile(null);
-  };
 
-  const deleteServerAI = () => {
-    setServerAIs(serverAIs.filter(ai => ai.id !== selectedServerAIId));
-  };
-
-  const createPromptModel = () => {
-    const newId = `prompt-${Date.now()}`;
-    const newPromptEntry = { id: newId, name: newPrompt };
-    setPromptModels([...promptModels, newPromptEntry]);
-    setNewPrompt('');
-  };
-
-  const deletePrompt = (id: string) => {
-    setPromptModels(promptModels.filter(model => model.id !== id));
   };
 
   return (
@@ -134,11 +89,11 @@ const Settings: React.FC = () => {
             <label className="block text-white text-sm font-bold mb-2">
               Prompt Model List
             </label>
-            {promptModels.map(prompt => (
+            {serverAIs.map((prompt) => (
               <div key={prompt.id} className="flex justify-between items-center px-2 py-1 bg-[#353535] mt-1 rounded">
                 <span className='text-white'>{prompt.name}</span>
                 <button
-                  onClick={() => deletePrompt(prompt.id)}
+                  onClick={() => deleteServerAI(prompt.id)}
                   className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded"
                 >
                   Delete
@@ -157,7 +112,7 @@ const Settings: React.FC = () => {
                 onChange={e => setNewPrompt(e.target.value)}
               />
               <button
-                onClick={createPromptModel}
+                onClick={createServerAI}
                 className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
               >
                 Create Prompt
@@ -174,7 +129,7 @@ const Settings: React.FC = () => {
                 value={selectedModel}
                 onChange={handleModelChange}
               >
-                {models.map(model => (
+                {models.map((model) => (
                   <option key={model} value={model}>{model}</option>
                 ))}
               </select>
@@ -201,12 +156,8 @@ const Settings: React.FC = () => {
                 value={selectedServerAIId}
                 onChange={handleServerAIChange}
               >
-                {promptModels.map(ai => (
-                  <option
-                    key={ai.id}
-                    value={ai.id}>
-                      {ai.name}
-                    </option>
+                {serverAIs.map((ai) => (
+                  <option key={ai.id} value={ai.id}>{ai.name}</option>
                 ))}
               </select>
             </div>
@@ -283,7 +234,7 @@ const Settings: React.FC = () => {
             Create
           </button>
           <button
-            onClick={deleteServerAI}
+            onClick={() => deleteServerAI(selectedServerAIId)}
             className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
           >
             Delete
